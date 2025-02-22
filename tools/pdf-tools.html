@@ -11,74 +11,19 @@
   <!-- Interact.js for crop box -->
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
   <style>
-    /* Custom styles for tool sections */
-    section {
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 30px;
-      background: #fff;
-    }
-    section h3 {
-      border-bottom: 2px solid #0073e6;
-      padding-bottom: 10px;
-    }
-    /* Global PDF Viewer Panel */
-    #globalPreview {
-      border: 1px solid #ddd;
-      padding: 10px;
-      background: #fafafa;
-      border-radius: 8px;
-      margin-bottom: 30px;
-      position: relative;
-    }
-    #globalPreview canvas {
-      border: 1px solid #ccc;
-      max-width: 100%;
-    }
-    .file-info {
-      font-size: 0.9rem;
-      color: #555;
-      margin-top: 10px;
-    }
-    /* Container for graphical crop modal */
-    #canvasContainer {
-      position: relative;
-      border: 1px solid #ddd;
-      background: #fff;
-    }
-    /* Crop box overlay */
-    .crop-box {
-      position: absolute;
-      border: 2px dashed red;
-      background-color: rgba(255, 0, 0, 0.1);
-      cursor: move;
-      top: 50px;
-      left: 50px;
-      width: 200px;
-      height: 150px;
-    }
-    /* Numeric crop inputs styling */
-    #numericValues {
-      margin-top: 20px;
-    }
-    #numericValues .form-control {
-      max-width: 120px;
-      display: inline-block;
-      margin-right: 10px;
-    }
+    /* Additional styles can be added here if needed */
   </style>
 </head>
 <body class="fade-in">
-  <!-- Top Toolbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow">
+    <div class="container">
       <a class="navbar-brand" href="../index.html">ToolFusion</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#pdfNavbar">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="pdfNavbar">
-        <ul class="navbar-nav me-auto">
+        <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link active" href="pdf-tools.html">PDF Tools</a></li>
           <li class="nav-item"><a class="nav-link" href="doc-tools.html">Doc Tools</a></li>
           <li class="nav-item"><a class="nav-link" href="archive-tools.html">Archive Tools</a></li>
@@ -87,41 +32,7 @@
     </div>
   </nav>
 
-  <!-- Notice Modal (shown only once) -->
-  <div class="modal fade" id="noticeModal" tabindex="-1" aria-labelledby="noticeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-primary">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="noticeModalLabel">Important Notice</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="noticeCloseBtn"></button>
-        </div>
-        <div class="modal-body">
-          <p>This tool works best on updated browsers such as Chrome, Edge, Firefox, and Safari.</p>
-          <p>All tools run entirely locally – no data is uploaded to any server.</p>
-          <p>This website is free to use and open source, created by <strong>Chetan Patel</strong>.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="noticeGotItBtn">Got It!</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Global PDF Viewer Panel -->
-  <div class="container my-4">
-    <h4 class="text-center">Global PDF Viewer</h4>
-    <div id="globalPreview" class="text-center mb-3">
-      <canvas id="globalPreviewCanvas"></canvas>
-    </div>
-    <div class="d-flex justify-content-center align-items-center mb-3">
-      <button id="prevPage" class="btn btn-secondary me-2">Previous</button>
-      <span id="pageInfo" class="me-2">Page 1 / 1</span>
-      <button id="nextPage" class="btn btn-secondary me-2">Next</button>
-      <button id="zoomOut" class="btn btn-secondary me-2">Zoom Out</button>
-      <button id="zoomIn" class="btn btn-secondary">Zoom In</button>
-    </div>
-    <div id="globalFileInfo" class="file-info text-center"></div>
-  </div>
+  <!-- (Optionally include a hero section or leave it out on tool pages) -->
 
   <!-- Main Content -->
   <div class="container my-5">
@@ -211,7 +122,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Select the crop area using the draggable and resizable crop box. When you click "Crop PDF", your selected area will be transferred to the numeric fields and used to crop every page.</p>
+          <p>Select the crop area using the draggable and resizable crop box. When you click "Crop PDF", the exact area you selected will be transferred to the numeric fields and used to crop every page.</p>
           <div id="canvasContainer" class="position-relative">
             <canvas id="cropCanvas" style="border:1px solid #ccc; display:block; width:100%;"></canvas>
             <div class="crop-box"></div>
@@ -282,7 +193,9 @@
 
   <!-- Footer -->
   <footer class="bg-light text-center py-3">
-    <p>&copy; 2025 ToolFusion</p>
+    <div class="container">
+      <p>&copy; 2025 ToolFusion</p>
+    </div>
   </footer>
 
   <!-- Scripts -->
@@ -308,7 +221,6 @@
       if (!localStorage.getItem("noticeShown")) {
         const noticeModal = new bootstrap.Modal(document.getElementById("noticeModal"));
         noticeModal.show();
-        // When user dismisses, set flag in localStorage.
         document.getElementById("noticeGotItBtn").addEventListener("click", () => {
           localStorage.setItem("noticeShown", "true");
         });
