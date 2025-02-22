@@ -8,47 +8,84 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <!-- Custom CSS -->
   <style>
+    /* Global styles and animations */
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f8f9fa;
+      background-color: #111;
       margin: 0;
+      animation: fadeInBody 1.5s ease-in-out;
     }
+    @keyframes fadeInBody {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .navbar, footer {
+      animation: slideDown 0.8s ease-out;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    /* Hero Section */
     .hero {
       background: url('assets/images/hero-bg.jpg') no-repeat center center;
       background-size: cover;
       color: #fff;
-      padding: 100px 0;
+      padding: 120px 0;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    .hero h1 {
+    /* Pixel-style animated text */
+    .pixel-text {
       font-size: 3.5rem;
       font-weight: bold;
-      /* Gradient text */
-      background: linear-gradient(45deg, #ff6b6b, #f7d794, #1dd1a1);
+      letter-spacing: 3px;
+      background: linear-gradient(45deg, #00ffea, #ff00f7, #ffea00);
+      background-size: 300%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: pulse 2s infinite;
+      animation: pixelAnim 3s linear infinite;
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000;
     }
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.05);
-      }
-      100% {
-        transform: scale(1);
-      }
+    @keyframes pixelAnim {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .hero p {
+      font-size: 1.5rem;
+      margin-top: 20px;
+      animation: fadeInText 2s ease-in-out;
+    }
+    @keyframes fadeInText {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .tool-links a {
       margin: 0 10px;
       font-size: 1.2rem;
+      animation: pulseLink 1.5s infinite;
+    }
+    @keyframes pulseLink {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    /* About Section Animation */
+    .about-section {
+      animation: fadeInUp 1s ease-out;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
     <div class="container">
       <a class="navbar-brand" href="#">ToolFusion</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -67,7 +104,7 @@
   <!-- Hero Section -->
   <section class="hero">
     <div class="container">
-      <h1>Welcome to ToolFusion</h1>
+      <h1 class="pixel-text">Welcome to ToolFusion</h1>
       <p>Your one-stop solution for converting, editing, and managing documents and files.</p>
       <div class="tool-links">
         <a href="tools/pdf-tools.html" class="btn btn-lg btn-light">PDF Tools</a>
@@ -78,11 +115,11 @@
   </section>
 
   <!-- About Section -->
-  <section class="py-5">
+  <section class="py-5 about-section">
     <div class="container">
       <h2 class="mb-4">About ToolFusion</h2>
-      <p>ToolFusion is a free suite of tools designed to help you manage your documents and files without any cost. Whether you need to merge, split, crop, convert, or archive your files, our website offers a range of tools that work entirely on the client side.</p>
-      <p>Browse our tools, and get started today!</p>
+      <p>ToolFusion is a free suite of tools designed to help you manage your documents and files without any cost. Whether you need to merge, split, crop, convert, or archive your files, our website offers a range of tools that work entirely on the client side. Enjoy a modern, animated interface that makes your experience both engaging and efficient.</p>
+      <p>Get started now and explore the tools we have to offer!</p>
     </div>
   </section>
 
@@ -95,5 +132,6 @@
 
   <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Optional: Additional JavaScript animations can be added here -->
 </body>
 </html>
