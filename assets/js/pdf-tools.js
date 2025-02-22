@@ -21,10 +21,11 @@ function updateProgress(progressObj, message) {
 }
 
 // ------------------------
-// Global PDF Viewer (common to all tools)
+// Global PDF Viewer (Shared by all tools)
 let globalPdfDoc = null;
 let globalCurrentPage = 1;
 let globalZoom = 1.0;
+
 async function renderGlobalPage(num) {
   if (!globalPdfDoc) return;
   const page = await globalPdfDoc.getPage(num);
@@ -36,6 +37,7 @@ async function renderGlobalPage(num) {
   await page.render({ canvasContext: ctx, viewport: viewport }).promise;
   document.getElementById("pageInfo").innerText = `Page ${num} / ${globalPdfDoc.numPages}`;
 }
+
 async function loadGlobalPDF(file) {
   if (!file) return;
   const reader = new FileReader();
@@ -55,12 +57,14 @@ async function loadGlobalPDF(file) {
   };
   reader.readAsArrayBuffer(file);
 }
+
 ["mergeInput", "splitInput", "cutInput", "pdfToDocInput", "pdfToImagesInput"].forEach(id => {
   const inputEl = document.getElementById(id);
   inputEl.addEventListener("change", function () {
     if (this.files[0]) loadGlobalPDF(this.files[0]);
   });
 });
+
 document.getElementById("prevPage").addEventListener("click", async () => {
   if (globalPdfDoc && globalCurrentPage > 1) {
     globalCurrentPage--;
@@ -133,6 +137,7 @@ document.getElementById("prepareMergeBtn").addEventListener("click", async () =>
   });
   setTimeout(() => { new bootstrap.Modal(document.getElementById("mergeModal")).show(); }, 500);
 });
+
 document.getElementById("mergeConfirmBtn").addEventListener("click", async () => {
   if (mergePages.length === 0) return;
   const progressObj = showProgress("Merging PDFs...", mergePages.length);
