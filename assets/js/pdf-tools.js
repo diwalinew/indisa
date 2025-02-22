@@ -137,7 +137,6 @@ document.getElementById("prepareMergeBtn").addEventListener("click", async () =>
   });
   setTimeout(() => { new bootstrap.Modal(document.getElementById("mergeModal")).show(); }, 500);
 });
-
 document.getElementById("mergeConfirmBtn").addEventListener("click", async () => {
   if (mergePages.length === 0) return;
   const progressObj = showProgress("Merging PDFs...", mergePages.length);
@@ -195,11 +194,14 @@ document.getElementById("splitBtn").addEventListener("click", async () => {
 
 // ------------------------
 // Revised PDF Cropping Tool
+// ------------------------
 let cropPdfDoc = null;
 let cropFile = null;
 let cropSelection = null;
 const cropCanvas = document.getElementById("cropCanvas");
 const cropCtx = cropCanvas.getContext("2d");
+
+// When a PDF is selected for cropping, open the crop modal automatically.
 document.getElementById("cutInput").addEventListener("change", function() {
   if (!this.files[0]) return;
   cropFile = this.files[0];
@@ -212,11 +214,12 @@ async function openCropModal() {
       const typedarray = new Uint8Array(this.result);
       cropPdfDoc = await pdfjsLib.getDocument({ data: typedarray }).promise;
       const page = await cropPdfDoc.getPage(1);
-      const scale = 1.0;
+      const scale = 1.0; // Render at 1:1 scale.
       const viewport = page.getViewport({ scale: scale });
       cropCanvas.width = viewport.width;
       cropCanvas.height = viewport.height;
       await page.render({ canvasContext: cropCtx, viewport: viewport }).promise;
+      // Reset crop box to cover center half of canvas.
       const cropBox = document.querySelector('.crop-box');
       cropBox.style.transform = 'translate(0px, 0px)';
       cropBox.style.width = (viewport.width / 2) + 'px';
@@ -273,6 +276,7 @@ function updateCropSelection() {
   const cropBox = document.querySelector('.crop-box');
   const canvasRect = cropCanvas.getBoundingClientRect();
   const boxRect = cropBox.getBoundingClientRect();
+  // Calculate the crop selection relative to the canvas.
   cropSelection = {
     x: boxRect.left - canvasRect.left,
     y: boxRect.top - canvasRect.top,
@@ -285,12 +289,15 @@ document.getElementById("applyCropBtn").addEventListener("click", async () => {
     alert("Please select a crop area.");
     return;
   }
+  // Transfer crop selection values to numeric inputs.
   document.getElementById("cutX").value = Math.round(cropSelection.x);
   document.getElementById("cutY").value = Math.round(cropSelection.y);
   document.getElementById("cutWidth").value = Math.round(cropSelection.width);
   document.getElementById("cutHeight").value = Math.round(cropSelection.height);
+  // Close the crop modal.
   const modalInstance = bootstrap.Modal.getInstance(document.getElementById("cropModal"));
   modalInstance.hide();
+  // Process the crop using the exact numeric values.
   processCrop();
 });
 async function processCrop() {
@@ -309,6 +316,7 @@ async function processCrop() {
     const typedarray = new Uint8Array(this.result);
     const pdfDoc = await PDFLib.PDFDocument.load(typedarray);
     const pages = pdfDoc.getPages();
+    // For each page, apply the same crop box.
     pages.forEach(page => {
       page.setCropBox(x, y, width, height);
     });
