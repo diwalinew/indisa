@@ -1,5 +1,5 @@
 // ------------------------
-// Utility: Progress Modal Functions
+// Utility Functions
 // ------------------------
 function showProgress(title, stepsTotal) {
   const progressModal = new bootstrap.Modal(document.getElementById("progressModal"));
@@ -21,12 +21,10 @@ function updateProgress(progressObj, message) {
 }
 
 // ------------------------
-// Global PDF Viewer Section
-// ------------------------
+// Global PDF Viewer (common to all tools)
 let globalPdfDoc = null;
 let globalCurrentPage = 1;
 let globalZoom = 1.0;
-
 async function renderGlobalPage(num) {
   if (!globalPdfDoc) return;
   const page = await globalPdfDoc.getPage(num);
@@ -38,7 +36,6 @@ async function renderGlobalPage(num) {
   await page.render({ canvasContext: ctx, viewport: viewport }).promise;
   document.getElementById("pageInfo").innerText = `Page ${num} / ${globalPdfDoc.numPages}`;
 }
-
 async function loadGlobalPDF(file) {
   if (!file) return;
   const reader = new FileReader();
@@ -58,14 +55,12 @@ async function loadGlobalPDF(file) {
   };
   reader.readAsArrayBuffer(file);
 }
-
 ["mergeInput", "splitInput", "cutInput", "pdfToDocInput", "pdfToImagesInput"].forEach(id => {
   const inputEl = document.getElementById(id);
   inputEl.addEventListener("change", function () {
     if (this.files[0]) loadGlobalPDF(this.files[0]);
   });
 });
-
 document.getElementById("prevPage").addEventListener("click", async () => {
   if (globalPdfDoc && globalCurrentPage > 1) {
     globalCurrentPage--;
@@ -92,8 +87,7 @@ document.getElementById("zoomOut").addEventListener("click", async () => {
 });
 
 // ------------------------
-// Merge PDF Tool (Fixed)
-// ------------------------
+// Merge PDF Tool
 let mergePages = [];
 document.getElementById("prepareMergeBtn").addEventListener("click", async () => {
   const files = document.getElementById("mergeInput").files;
@@ -139,7 +133,6 @@ document.getElementById("prepareMergeBtn").addEventListener("click", async () =>
   });
   setTimeout(() => { new bootstrap.Modal(document.getElementById("mergeModal")).show(); }, 500);
 });
-
 document.getElementById("mergeConfirmBtn").addEventListener("click", async () => {
   if (mergePages.length === 0) return;
   const progressObj = showProgress("Merging PDFs...", mergePages.length);
@@ -158,8 +151,7 @@ document.getElementById("mergeConfirmBtn").addEventListener("click", async () =>
 });
 
 // ------------------------
-// Split PDF Tool (Fixed)
-// ------------------------
+// Split PDF Tool
 document.getElementById("splitBtn").addEventListener("click", async () => {
   const file = document.getElementById("splitInput").files[0];
   const splitAfter = parseInt(document.getElementById("splitPage").value);
@@ -198,27 +190,16 @@ document.getElementById("splitBtn").addEventListener("click", async () => {
 
 // ------------------------
 // Revised PDF Cropping Tool
-// ------------------------
-// Workflow:
-// 1. When a PDF is selected in the Cut section, the crop modal opens automatically.
-// 2. In the modal, the first page is rendered on a canvas with an overlaid, free-form (no fixed aspect ratio) crop box.
-// 3. The user drags/resizes the crop box to select the desired area.
-// 4. When the user clicks "Crop PDF" in the modal, the crop box’s coordinates (relative to the canvas) are transferred to the numeric inputs.
-// 5. Then, using those exact numeric values, the tool crops every page of the PDF and automatically triggers a download.
-// 6. The modal closes reliably.
-
 let cropPdfDoc = null;
 let cropFile = null;
 let cropSelection = null;
 const cropCanvas = document.getElementById("cropCanvas");
 const cropCtx = cropCanvas.getContext("2d");
-
 document.getElementById("cutInput").addEventListener("change", function() {
   if (!this.files[0]) return;
   cropFile = this.files[0];
   openCropModal();
 });
-
 async function openCropModal() {
   const reader = new FileReader();
   reader.onload = async function() {
@@ -231,7 +212,6 @@ async function openCropModal() {
       cropCanvas.width = viewport.width;
       cropCanvas.height = viewport.height;
       await page.render({ canvasContext: cropCtx, viewport: viewport }).promise;
-      // Reset crop box: center it covering half the canvas.
       const cropBox = document.querySelector('.crop-box');
       cropBox.style.transform = 'translate(0px, 0px)';
       cropBox.style.width = (viewport.width / 2) + 'px';
@@ -249,7 +229,6 @@ async function openCropModal() {
   reader.readAsArrayBuffer(cropFile);
   new bootstrap.Modal(document.getElementById("cropModal")).show();
 }
-
 interact('.crop-box')
   .draggable({
     inertia: true,
@@ -285,7 +264,6 @@ interact('.crop-box')
     target.setAttribute('data-y', y);
     updateCropSelection();
   });
-
 function updateCropSelection() {
   const cropBox = document.querySelector('.crop-box');
   const canvasRect = cropCanvas.getBoundingClientRect();
@@ -297,24 +275,19 @@ function updateCropSelection() {
     height: boxRect.height
   };
 }
-
 document.getElementById("applyCropBtn").addEventListener("click", async () => {
   if (!cropSelection) {
     alert("Please select a crop area.");
     return;
   }
-  // Transfer the crop selection to numeric fields.
   document.getElementById("cutX").value = Math.round(cropSelection.x);
   document.getElementById("cutY").value = Math.round(cropSelection.y);
   document.getElementById("cutWidth").value = Math.round(cropSelection.width);
   document.getElementById("cutHeight").value = Math.round(cropSelection.height);
-  // Close the crop modal.
   const modalInstance = bootstrap.Modal.getInstance(document.getElementById("cropModal"));
   modalInstance.hide();
-  // Process the crop for all pages.
   processCrop();
 });
-
 async function processCrop() {
   const file = document.getElementById("cutInput").files[0];
   const x = parseFloat(document.getElementById("cutX").value);
@@ -331,14 +304,12 @@ async function processCrop() {
     const typedarray = new Uint8Array(this.result);
     const pdfDoc = await PDFLib.PDFDocument.load(typedarray);
     const pages = pdfDoc.getPages();
-    // Apply the user-selected crop region to every page.
     pages.forEach(page => {
       page.setCropBox(x, y, width, height);
     });
     const croppedBytes = await pdfDoc.save();
     const blob = new Blob([croppedBytes], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
-    // Trigger download automatically.
     const a = document.createElement("a");
     a.href = url;
     a.download = "cropped.pdf";
@@ -351,8 +322,7 @@ async function processCrop() {
 }
 
 // ------------------------
-// PDF to DOC (Text Extraction) with Modal & Progress
-// ------------------------
+// PDF to DOC (Text Extraction) Tool
 document.getElementById("pdfToDocBtn").addEventListener("click", async () => {
   const file = document.getElementById("pdfToDocInput").files[0];
   if (!file) {
@@ -383,7 +353,6 @@ document.getElementById("pdfToDocBtn").addEventListener("click", async () => {
   };
   reader.readAsArrayBuffer(file);
 });
-
 document.getElementById("downloadTxtBtn").addEventListener("click", () => {
   const text = document.getElementById("extractedTextArea").value;
   if (!text) return;
@@ -396,7 +365,6 @@ document.getElementById("downloadTxtBtn").addEventListener("click", () => {
   a.click();
   document.body.removeChild(a);
 });
-
 document.getElementById("downloadDocBtn").addEventListener("click", () => {
   const text = document.getElementById("extractedTextArea").value;
   if (!text) return;
@@ -411,8 +379,7 @@ document.getElementById("downloadDocBtn").addEventListener("click", () => {
 });
 
 // ------------------------
-// PDF to Images with ZIP Download and Progress
-// ------------------------
+// PDF to Images Tool
 document.getElementById("pdfToImagesBtn").addEventListener("click", async () => {
   const file = document.getElementById("pdfToImagesInput").files[0];
   if (!file) {
