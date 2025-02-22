@@ -42,7 +42,7 @@ async function renderGlobalPage(num) {
 async function loadGlobalPDF(file) {
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = async function() {
+  reader.onload = async function () {
     const typedarray = new Uint8Array(this.result);
     globalPdfDoc = await pdfjsLib.getDocument({ data: typedarray }).promise;
     globalCurrentPage = 1;
@@ -61,7 +61,7 @@ async function loadGlobalPDF(file) {
 
 ["mergeInput", "splitInput", "cutInput", "pdfToDocInput", "pdfToImagesInput"].forEach(id => {
   const inputEl = document.getElementById(id);
-  inputEl.addEventListener("change", function() {
+  inputEl.addEventListener("change", function () {
     if (this.files[0]) loadGlobalPDF(this.files[0]);
   });
 });
@@ -91,18 +91,121 @@ document.getElementById("zoomOut").addEventListener("click", async () => {
   }
 });
 
-// (Merge, Split, PDF-to-DOC, and PDF-to-Images code remain unchanged)
+// ------------------------
+// Merge PDF Tool (Fixed)
+// ------------------------
+let mergePages = [];
+document.getElementById("prepareMergeBtn").addEventListener("click", async () => {
+  const files = document.getElementById("mergeInput").files;
+  if (files.length < 2) {
+    alert("Please select at least 2 PDF files to merge.");
+    return;
+  }
+  const progressObj = showProgress("Merging PDFs...", files.length);
+  mergePages = [];
+  for (const file of files) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+    const totalPages = pdfDoc.getPageCount();
+    for (let i = 0; i < totalPages; i++) {
+      mergePages.push({ fileName: file.name, pageIndex: i, arrayBuffer: arrayBuffer });
+    }
+    updateProgress(progressObj, `Loaded ${file.name}`);
+  }
+  const listEl = document.getElementById("mergePageList");
+  listEl.innerHTML = "";
+  mergePages.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.className = "border p-2";
+    li.style.width = "120px";
+    li.style.cursor = "move";
+    li.setAttribute("data-index", index);
+    li.innerHTML = `<strong>${item.fileName}</strong><br>Page ${item.pageIndex + 1}`;
+    listEl.appendChild(li);
+  });
+  Sortable.create(listEl, {
+    animation: 150,
+    onEnd: function () {
+      const newOrder = [];
+      listEl.querySelectorAll("li").forEach(li => {
+        const idx = li.getAttribute("data-index");
+        newOrder.push(mergePages[idx]);
+      });
+      mergePages = newOrder;
+      listEl.querySelectorAll("li").forEach((li, newIndex) => {
+        li.setAttribute("data-index", newIndex);
+      });
+    }
+  });
+  setTimeout(() => { new bootstrap.Modal(document.getElementById("mergeModal")).show(); }, 500);
+});
+
+document.getElementById("mergeConfirmBtn").addEventListener("click", async () => {
+  if (mergePages.length === 0) return;
+  const progressObj = showProgress("Merging PDFs...", mergePages.length);
+  const mergedPdf = await PDFLib.PDFDocument.create();
+  for (const item of mergePages) {
+    const pdf = await PDFLib.PDFDocument.load(item.arrayBuffer);
+    const [copiedPage] = await mergedPdf.copyPages(pdf, [item.pageIndex]);
+    mergedPdf.addPage(copiedPage);
+    updateProgress(progressObj, `Merged page ${item.pageIndex + 1} of ${item.fileName}`);
+  }
+  const mergedBytes = await mergedPdf.save();
+  const blob = new Blob([mergedBytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  document.getElementById("mergeDownload").innerHTML = `<a href="${url}" download="merged.pdf" class="btn btn-success">Download Merged PDF</a>`;
+  new bootstrap.Modal(document.getElementById("mergeModal")).hide();
+});
+
+// ------------------------
+// Split PDF Tool (Fixed)
+// ------------------------
+document.getElementById("splitBtn").addEventListener("click", async () => {
+  const file = document.getElementById("splitInput").files[0];
+  const splitAfter = parseInt(document.getElementById("splitPage").value);
+  if (!file || isNaN(splitAfter) || splitAfter < 1) {
+    alert("Please select a PDF and provide a valid page number.");
+    return;
+  }
+  const progressObj = showProgress("Splitting PDF...", 1);
+  const reader = new FileReader();
+  reader.onload = async function() {
+    const typedarray = new Uint8Array(this.result);
+    const pdf = await PDFLib.PDFDocument.load(typedarray);
+    const totalPages = pdf.getPageCount();
+    if (splitAfter >= totalPages) {
+      alert("Split page must be less than total pages.");
+      progressObj.modal.hide();
+      return;
+    }
+    const firstPdf = await PDFLib.PDFDocument.create();
+    const secondPdf = await PDFLib.PDFDocument.create();
+    const indices = Array.from({ length: totalPages }, (_, i) => i);
+    const firstPages = await firstPdf.copyPages(pdf, indices.slice(0, splitAfter));
+    firstPages.forEach(page => firstPdf.addPage(page));
+    const secondPages = await secondPdf.copyPages(pdf, indices.slice(splitAfter));
+    secondPages.forEach(page => secondPdf.addPage(page));
+    const firstPdfBytes = await firstPdf.save();
+    const secondPdfBytes = await secondPdf.save();
+    document.getElementById("splitDownloadContainer").innerHTML = `
+      <a href="${URL.createObjectURL(new Blob([firstPdfBytes], { type: "application/pdf" }))}" download="split-part1.pdf" class="btn btn-success me-2">Download Part 1</a>
+      <a href="${URL.createObjectURL(new Blob([secondPdfBytes], { type: "application/pdf" }))}" download="split-part2.pdf" class="btn btn-success">Download Part 2</a>
+    `;
+    updateProgress(progressObj, "Split completed");
+  };
+  reader.readAsArrayBuffer(file);
+});
 
 // ------------------------
 // Revised PDF Cropping Tool
 // ------------------------
 // Workflow:
-// 1. When a PDF is selected in the Cut section, open the graphical crop modal automatically.
-// 2. In the modal, render the first page on a canvas with an overlaid crop box (no fixed aspect ratio).
+// 1. When a PDF is selected in the Cut section, the crop modal opens automatically.
+// 2. In the modal, the first page is rendered on a canvas with an overlaid, free-form (no fixed aspect ratio) crop box.
 // 3. The user drags/resizes the crop box to select the desired area.
-// 4. When the user clicks the "Crop PDF" button in the modal, the exact coordinates (relative to the canvas) are captured and immediately transferred into the numeric input fields in the Cut section.
-// 5. Then the tool processes the crop: using those numeric values, the same crop region is applied to every page of the PDF, and the cropped PDF is automatically downloaded.
-// 6. The crop modal reliably closes.
+// 4. When the user clicks "Crop PDF" in the modal, the crop box’s coordinates (relative to the canvas) are transferred to the numeric inputs.
+// 5. Then, using those exact numeric values, the tool crops every page of the PDF and automatically triggers a download.
+// 6. The modal closes reliably.
 
 let cropPdfDoc = null;
 let cropFile = null;
@@ -110,7 +213,6 @@ let cropSelection = null;
 const cropCanvas = document.getElementById("cropCanvas");
 const cropCtx = cropCanvas.getContext("2d");
 
-// Automatically open crop modal when a file is selected in the Cut section.
 document.getElementById("cutInput").addEventListener("change", function() {
   if (!this.files[0]) return;
   cropFile = this.files[0];
@@ -148,7 +250,6 @@ async function openCropModal() {
   new bootstrap.Modal(document.getElementById("cropModal")).show();
 }
 
-// Enable draggable & resizable crop box using Interact.js.
 interact('.crop-box')
   .draggable({
     inertia: true,
@@ -189,7 +290,6 @@ function updateCropSelection() {
   const cropBox = document.querySelector('.crop-box');
   const canvasRect = cropCanvas.getBoundingClientRect();
   const boxRect = cropBox.getBoundingClientRect();
-  // Calculate selection relative to canvas.
   cropSelection = {
     x: boxRect.left - canvasRect.left,
     y: boxRect.top - canvasRect.top,
@@ -198,23 +298,20 @@ function updateCropSelection() {
   };
 }
 
-// When user clicks "Crop PDF" in the modal, transfer values and process crop.
 document.getElementById("applyCropBtn").addEventListener("click", async () => {
   if (!cropSelection) {
     alert("Please select a crop area.");
     return;
   }
-  // Transfer crop selection to numeric input fields.
+  // Transfer the crop selection to numeric fields.
   document.getElementById("cutX").value = Math.round(cropSelection.x);
   document.getElementById("cutY").value = Math.round(cropSelection.y);
   document.getElementById("cutWidth").value = Math.round(cropSelection.width);
   document.getElementById("cutHeight").value = Math.round(cropSelection.height);
-  
   // Close the crop modal.
   const modalInstance = bootstrap.Modal.getInstance(document.getElementById("cropModal"));
   modalInstance.hide();
-  
-  // Process crop for all pages using the transferred values.
+  // Process the crop for all pages.
   processCrop();
 });
 
@@ -234,14 +331,14 @@ async function processCrop() {
     const typedarray = new Uint8Array(this.result);
     const pdfDoc = await PDFLib.PDFDocument.load(typedarray);
     const pages = pdfDoc.getPages();
-    // Apply the exact crop region (user-selected) to every page.
+    // Apply the user-selected crop region to every page.
     pages.forEach(page => {
       page.setCropBox(x, y, width, height);
     });
     const croppedBytes = await pdfDoc.save();
     const blob = new Blob([croppedBytes], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
-    // Automatically trigger download.
+    // Trigger download automatically.
     const a = document.createElement("a");
     a.href = url;
     a.download = "cropped.pdf";
@@ -281,7 +378,7 @@ document.getElementById("pdfToDocBtn").addEventListener("click", async () => {
       new bootstrap.Modal(document.getElementById("docModal")).show();
     } catch (error) {
       console.error("Error extracting text:", error);
-      alert("An error occurred while extracting text.");
+      alert("An error occurred while extracting text from the PDF.");
     }
   };
   reader.readAsArrayBuffer(file);
@@ -325,7 +422,7 @@ document.getElementById("pdfToImagesBtn").addEventListener("click", async () => 
   const outputDiv = document.getElementById("pdfToImagesOutput");
   outputDiv.innerHTML = "";
   const reader = new FileReader();
-  reader.onload = async function() {
+  reader.onload = async function () {
     const typedarray = new Uint8Array(this.result);
     const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
     const totalPages = pdf.numPages;
