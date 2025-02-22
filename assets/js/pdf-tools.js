@@ -1,6 +1,4 @@
-// ------------------------
 // Utility Functions
-// ------------------------
 function showProgress(title, stepsTotal) {
   const progressModal = new bootstrap.Modal(document.getElementById("progressModal"));
   document.getElementById("progressModalLabel").innerText = title;
@@ -20,12 +18,10 @@ function updateProgress(progressObj, message) {
   }
 }
 
-// ------------------------
 // Global PDF Viewer (Shared by all tools)
 let globalPdfDoc = null;
 let globalCurrentPage = 1;
 let globalZoom = 1.0;
-
 async function renderGlobalPage(num) {
   if (!globalPdfDoc) return;
   const page = await globalPdfDoc.getPage(num);
@@ -37,7 +33,6 @@ async function renderGlobalPage(num) {
   await page.render({ canvasContext: ctx, viewport: viewport }).promise;
   document.getElementById("pageInfo").innerText = `Page ${num} / ${globalPdfDoc.numPages}`;
 }
-
 async function loadGlobalPDF(file) {
   if (!file) return;
   const reader = new FileReader();
@@ -57,14 +52,12 @@ async function loadGlobalPDF(file) {
   };
   reader.readAsArrayBuffer(file);
 }
-
 ["mergeInput", "splitInput", "cutInput", "pdfToDocInput", "pdfToImagesInput"].forEach(id => {
   const inputEl = document.getElementById(id);
   inputEl.addEventListener("change", function () {
     if (this.files[0]) loadGlobalPDF(this.files[0]);
   });
 });
-
 document.getElementById("prevPage").addEventListener("click", async () => {
   if (globalPdfDoc && globalCurrentPage > 1) {
     globalCurrentPage--;
@@ -91,7 +84,7 @@ document.getElementById("zoomOut").addEventListener("click", async () => {
 });
 
 // ------------------------
-// Merge PDF Tool
+// Merge PDF Tool (Unchanged)
 let mergePages = [];
 document.getElementById("prepareMergeBtn").addEventListener("click", async () => {
   const files = document.getElementById("mergeInput").files;
@@ -155,7 +148,7 @@ document.getElementById("mergeConfirmBtn").addEventListener("click", async () =>
 });
 
 // ------------------------
-// Split PDF Tool
+// Split PDF Tool (Unchanged)
 document.getElementById("splitBtn").addEventListener("click", async () => {
   const file = document.getElementById("splitInput").files[0];
   const splitAfter = parseInt(document.getElementById("splitPage").value);
@@ -195,13 +188,16 @@ document.getElementById("splitBtn").addEventListener("click", async () => {
 // ------------------------
 // Revised PDF Cropping Tool
 // ------------------------
+// This version renders at scale 1.0 so the canvas size equals PDF page dimensions.
+// The crop box’s position (relative to the canvas) is captured exactly,
+// then applied to every page of the PDF.
 let cropPdfDoc = null;
 let cropFile = null;
 let cropSelection = null;
 const cropCanvas = document.getElementById("cropCanvas");
 const cropCtx = cropCanvas.getContext("2d");
 
-// When a PDF is selected for cropping, open the crop modal automatically.
+// When a PDF is selected in the Cut section, open the crop modal automatically.
 document.getElementById("cutInput").addEventListener("change", function() {
   if (!this.files[0]) return;
   cropFile = this.files[0];
@@ -214,12 +210,12 @@ async function openCropModal() {
       const typedarray = new Uint8Array(this.result);
       cropPdfDoc = await pdfjsLib.getDocument({ data: typedarray }).promise;
       const page = await cropPdfDoc.getPage(1);
-      const scale = 1.0; // Render at 1:1 scale.
+      const scale = 1.0;
       const viewport = page.getViewport({ scale: scale });
       cropCanvas.width = viewport.width;
       cropCanvas.height = viewport.height;
       await page.render({ canvasContext: cropCtx, viewport: viewport }).promise;
-      // Reset crop box to cover center half of canvas.
+      // Set the crop box to cover the center half of the canvas.
       const cropBox = document.querySelector('.crop-box');
       cropBox.style.transform = 'translate(0px, 0px)';
       cropBox.style.width = (viewport.width / 2) + 'px';
@@ -276,7 +272,6 @@ function updateCropSelection() {
   const cropBox = document.querySelector('.crop-box');
   const canvasRect = cropCanvas.getBoundingClientRect();
   const boxRect = cropBox.getBoundingClientRect();
-  // Calculate the crop selection relative to the canvas.
   cropSelection = {
     x: boxRect.left - canvasRect.left,
     y: boxRect.top - canvasRect.top,
@@ -289,7 +284,7 @@ document.getElementById("applyCropBtn").addEventListener("click", async () => {
     alert("Please select a crop area.");
     return;
   }
-  // Transfer crop selection values to numeric inputs.
+  // Transfer the crop selection to numeric inputs.
   document.getElementById("cutX").value = Math.round(cropSelection.x);
   document.getElementById("cutY").value = Math.round(cropSelection.y);
   document.getElementById("cutWidth").value = Math.round(cropSelection.width);
@@ -297,7 +292,7 @@ document.getElementById("applyCropBtn").addEventListener("click", async () => {
   // Close the crop modal.
   const modalInstance = bootstrap.Modal.getInstance(document.getElementById("cropModal"));
   modalInstance.hide();
-  // Process the crop using the exact numeric values.
+  // Process the crop for all pages.
   processCrop();
 });
 async function processCrop() {
@@ -316,7 +311,6 @@ async function processCrop() {
     const typedarray = new Uint8Array(this.result);
     const pdfDoc = await PDFLib.PDFDocument.load(typedarray);
     const pages = pdfDoc.getPages();
-    // For each page, apply the same crop box.
     pages.forEach(page => {
       page.setCropBox(x, y, width, height);
     });
