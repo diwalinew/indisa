@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive Tools - ZIP Compression</title>
+  <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Create a ZIP Archive</h1>
+  </header>
+  <main>
+    <input type="file" id="fileInput" multiple>
+    <button id="zipBtn">Create ZIP</button>
+    <a id="downloadZip" style="display:none; margin-top:10px;">Download ZIP</a>
+  </main>
+  <!-- Load JSZip from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+  <script src="../assets/js/archive-tools.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+  margin: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Navbar styling */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Footer styling */
+footer {
+  background-color: #e9ecef;
+}
+
+/* Fade in animation */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.8s forwards;
+}
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* Button hover effect */
+.btn:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+/* Progress bar styling */
+.progress-bar {
+  transition: width 0.3s ease;
+}
+
+/* Global PDF Viewer Panel */
+#globalPreview {
+  border: 1px solid #ddd;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  position: relative;
+}
+#globalPreview canvas {
+  border: 1px solid #ccc;
+  max-width: 100%;
+}
+.file-info {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 10px;
+}
+
+/* Container for graphical crop modal */
+#canvasContainer {
+  position: relative;
+  border: 1px solid #ddd;
+  background: #fff;
+}
+
+/* Crop box overlay for graphical crop */
+.crop-box {
+  position: absolute;
+  border: 2px dashed red;
+  background-color: rgba(255, 0, 0, 0.1);
+  cursor: move;
+  /* Default values; will be reset when modal opens */
+  top: 50px;
+  left: 50px;
+  width: 200px;
+  height: 150px;
+}
+
+/* Numeric crop inputs styling */
+#numericValues {
+  margin-top: 20px;
+}
+#numericValues .form-control {
+  max-width: 120px;
+  display: inline-block;
+  margin-right: 10px;
+}
