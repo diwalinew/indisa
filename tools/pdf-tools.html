@@ -87,13 +87,13 @@
     </div>
   </nav>
 
-  <!-- Notice Modal -->
+  <!-- Notice Modal (shown only once) -->
   <div class="modal fade" id="noticeModal" tabindex="-1" aria-labelledby="noticeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-primary">
         <div class="modal-header bg-primary text-white">
           <h5 class="modal-title" id="noticeModalLabel">Important Notice</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="noticeCloseBtn"></button>
         </div>
         <div class="modal-body">
           <p>This tool works best on updated browsers such as Chrome, Edge, Firefox, and Safari.</p>
@@ -101,7 +101,7 @@
           <p>This website is free to use and open source, created by <strong>Chetan Patel</strong>.</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got It!</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="noticeGotItBtn">Got It!</button>
         </div>
       </div>
     </div>
@@ -211,7 +211,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Select the crop area using the draggable and resizable crop box. When you click "Crop PDF", your exact selected area will be transferred to the numeric fields and used to crop every page.</p>
+          <p>Select the crop area using the draggable and resizable crop box. When you click "Crop PDF", your selected area will be transferred to the numeric fields and used to crop every page.</p>
           <div id="canvasContainer" class="position-relative">
             <canvas id="cropCanvas" style="border:1px solid #ccc; display:block; width:100%;"></canvas>
             <div class="crop-box"></div>
@@ -302,10 +302,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Our PDF Tools Script -->
   <script src="../assets/js/pdf-tools.js"></script>
-  <!-- Show Notice Modal on Page Load -->
+  <!-- Show Notice Modal Only Once -->
   <script>
     window.addEventListener("DOMContentLoaded", () => {
-      new bootstrap.Modal(document.getElementById("noticeModal")).show();
+      if (!localStorage.getItem("noticeShown")) {
+        const noticeModal = new bootstrap.Modal(document.getElementById("noticeModal"));
+        noticeModal.show();
+        // When user dismisses, set flag in localStorage.
+        document.getElementById("noticeGotItBtn").addEventListener("click", () => {
+          localStorage.setItem("noticeShown", "true");
+        });
+        document.getElementById("noticeCloseBtn").addEventListener("click", () => {
+          localStorage.setItem("noticeShown", "true");
+        });
+      }
     });
   </script>
 </body>
