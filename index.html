@@ -6,7 +6,7 @@
   <title>ToolFusion - All-in-One Tools</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <!-- Particles.js CSS (optional, for canvas full width) -->
+  <!-- Custom Global CSS -->
   <style>
     /* Global Light Theme and Animations */
     body {
@@ -36,7 +36,6 @@
       text-align: center;
       overflow: hidden;
     }
-    /* Container for particles */
     #particles-js {
       position: absolute;
       top: 0;
@@ -49,7 +48,6 @@
       position: relative;
       z-index: 2;
     }
-    /* Pixel-style animated heading with RGB gradient & particle-like text glow */
     .pixel-text {
       font-size: 3.5rem;
       font-weight: bold;
@@ -59,7 +57,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: pixelAnim 3s linear infinite;
-      text-shadow: 0 0 5px rgba(255,255,255,0.8);
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000;
     }
     @keyframes pixelAnim {
       0% { background-position: 0% 50%; }
@@ -82,7 +80,7 @@
     }
     .tool-links a:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+      box-shadow: 0 0 10px rgba(0,123,255,0.7);
     }
     
     /* About Section Animation */
@@ -113,9 +111,8 @@
     </div>
   </nav>
 
-  <!-- Hero Section with Particles -->
+  <!-- Hero Section -->
   <section class="hero">
-    <!-- Particles container -->
     <div id="particles-js"></div>
     <div class="hero-content container">
       <h1 class="pixel-text">Welcome to ToolFusion</h1>
@@ -153,25 +150,20 @@
     particlesJS("particles-js", {
       "particles": {
         "number": {
-          "value": 60,
+          "value": 80,
           "density": {
             "enable": true,
             "value_area": 800
           }
         },
         "color": {
-          "value": "#ffffff"
+          "value": "#000"
         },
         "shape": {
-          "type": "circle",
-          "stroke": {
-            "width": 0,
-            "color": "#000000"
-          }
+          "type": "circle"
         },
         "opacity": {
-          "value": 0.5,
-          "random": false
+          "value": 0.5
         },
         "size": {
           "value": 3,
@@ -180,7 +172,7 @@
         "line_linked": {
           "enable": true,
           "distance": 150,
-          "color": "#ffffff",
+          "color": "#000",
           "opacity": 0.4,
           "width": 1
         },
@@ -220,6 +212,5 @@
       "retina_detect": true
     });
   </script>
-  <!-- Optional: Additional JS animations can be added here -->
 </body>
 </html>
