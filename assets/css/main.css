@@ -48,14 +48,13 @@ footer {
   border: 2px dashed red;
   background-color: rgba(255, 0, 0, 0.1);
   cursor: move;
-  /* Initial default values (will be reset when modal opens) */
   top: 50px;
   left: 50px;
   width: 200px;
   height: 150px;
 }
 
-/* Numeric crop inputs styling */
+/* Numeric crop input fields */
 #numericValues {
   margin-top: 20px;
 }
@@ -63,4 +62,9 @@ footer {
   max-width: 120px;
   display: inline-block;
   margin-right: 10px;
+}
+
+/* Simple button hover effect */
+.btn:hover {
+  opacity: 0.9;
 }
